@@ -1,0 +1,22 @@
+# Compiled files
+*.tfstate
+*.tfstate.backup
+
+# Module directory
+.terraform/
+
+# Temps
+*.save
+*.swp
+*.old
+
+# Disables
+*.disabled
+
+# Deprecated
+./deprecated
+
+# Private variables
+private.auto.tfvars
+backend.tf
+
