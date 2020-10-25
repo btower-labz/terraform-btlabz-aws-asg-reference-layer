@@ -1,6 +1,6 @@
 module "codebuild" {
-  #source = "git::https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-ec2-codebuild-module.git?ref=master"
-  source = "../../modules/terraform-aws-btlabz-arch-ref-asg-codebuild-module"
+  source = "git::https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-asg-codebuild-module.git?ref=master"
+  #source = "../../modules/terraform-aws-btlabz-arch-ref-asg-codebuild-module"
   subnets = [
     module.vpc.private_a,
     module.vpc.private_b
@@ -21,8 +21,8 @@ module "codebuild" {
 }
 
 module "codedeploy" {
-  #source = "git::https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-ec2-codedeploy-module.git?ref=master"
-  source = "../../modules/terraform-aws-btlabz-arch-ref-asg-codedeploy-module"
+  source = "git::https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-asg-codedeploy-module.git?ref=master"
+  #source = "../../modules/terraform-aws-btlabz-arch-ref-asg-codedeploy-module"
   tags = merge(
     map(
       "Terraform", "yes"

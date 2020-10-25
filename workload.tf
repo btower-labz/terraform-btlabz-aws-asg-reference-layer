@@ -1,7 +1,7 @@
 module "workload_foo" {
-  #source = "git::https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-ec2-workload-module.git?ref=master"
-  source = "../../modules/terraform-aws-btlabz-arch-ref-asg-workload-module"
-  name   = "workload-foo"
+  source = "git::https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-asg-workload-module.git?ref=master"
+  #source = "../../modules/terraform-aws-btlabz-arch-ref-asg-workload-module"
+  name = "workload-foo"
   subnets = [
     module.vpc.private_a,
     module.vpc.private_b

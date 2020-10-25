@@ -48,6 +48,12 @@ Update POC using [update.sh](update.sh)
 * DJANGO decoupled database backend
 
 # Deploy
+
+Terraform v0.12.28
++ provider.aws v3.5.0
++ provider.random v3.0.0
++ provider.template v2.2.0
+
 r53 public zone
 terraform profiles
 deploy network
@@ -56,6 +62,8 @@ configure and do packer
 deploy database and codebuild
 do migrations (do environment update once)
 deploy the rest
+
+
 deploy codebuild if required
 
 ~1h - 1.5h
