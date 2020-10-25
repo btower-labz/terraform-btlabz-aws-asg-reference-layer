@@ -20,3 +20,5 @@
 private.auto.tfvars
 backend.tf
 
+terraform.log
+
