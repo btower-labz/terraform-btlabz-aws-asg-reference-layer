@@ -2,9 +2,11 @@
 
 This is a reference architecture for a sample python app with enabled HA and resiliency, autoscaling and database backend.
 
+This is the index page for the solution. Additional information might be available inside module repositories.
+
 ## Features
 
-This reference architecture deploys options as follows
+This reference architecture deploys options as follows:
 
 **Table:** architecture features
 | Option | Reference | Notes |
@@ -14,12 +16,14 @@ This reference architecture deploys options as follows
 | ASG (Resiliency, Scaling) | [usage](workload.tf)<br>[module][workload] | Resilient ASG workload with automatic health checks is configured. |
 | AMI Layering (System->MW->APP) | [system][pkr-system]<br>[middleware][pkr-middleware]<br>[application][pkr-application] | AMI prebaking is used to speed-up scaling. There are three layers: system, middleware, application. |
 | HA and resilient RDS Backend with Query access | [usage](database.tf)<br>[module][database] | Aurora serverless is used as database backend. Data API with adhoc queries is enabled. |
-| Workload network and SG isolation (pub-pri-db) | | |
+| Workload network and SG isolation (pub-pri-db) | | Workloads are isolated with networks and security groups. E.g. only load balancer is accessible from public. ASG instances use NAT for egress and accessible only through LB. Database backend is isolated in completely internal network. Security groups are used to enforce environment isolation fuarther. E.g. LB can access ASG instances only and can't access database. Database is accessible by ASG instances only. |
 | Session manager shell access and SM enabled | | |
-| Secrets manager and parameter store provisioning | | |
-| DJANGO local and cloud profiles (SM, Secrets) | | |
-| DJANGO decoupled database backend | | |
-| DJANGO migrations CodeBuild pipeline | | |
+| Secrets manager and parameter store provisioning |  [provision](ssm-config.tf) | All the instances are enabled for SSM. Environment configuration is stored in SSM Parameter Store. Database secrets are in AWS Secrets Manager |
+| DJANGO local and cloud profiles (SM, Secrets) | <br>[base](https://github.com/btower-labz/django-dashboard-black/blob/master/core/settings.py)<br>[local](https://github.com/btower-labz/django-dashboard-black/blob/master/core/settings_local.py)<br>[cloud](https://github.com/btower-labz/django-dashboard-black/blob/master/core/settings_cloud.py) | DJANGO is configured with two environment profiles: local and cloud. Local can be used on dev workstations. Cloud is for AWS deployment (dev, qa, prod etc) |
+| DJANGO decoupled database backend | | DJANGO is configured to use Aurora Serverless as backend and session storage. |
+| DJANGO migrations CodeBuild pipeline | [usage](pipelines.tf)<br>[module][codebuild] | Simple pipeline is created to handle database migrations. CodeBuild has an access to isolated RDS inside the VPC. |
+
+Additional information might be available inside the modules.
 
 ## Main Terraform Layer
 
@@ -33,11 +37,98 @@ See here: [INPUTS\OUTPUTS](INOUT.md)
 
 ## Usage
 
-Do parent R53 zone configuration based on [private.auto.tfvars.sample](private.auto.tfvars.sample).
+### Prerequisites
 
-Configure terraform backend profile based on [backend.tf.sample](backend.tf.sample)
+Public R53 zone is required to deploy the solution. It will create a subzone with all the records required in that parent zone.
+
+Control workstation with: linux, git, terraform, packer, awscli
+
+AWS Profile with name "terraform-infra" with administrative access to the AWS account for infra provisioniung.
+
+AWS Profile with name "packer" with administrative access to the AWS account for AMI baking.
+
+Terraform backend configuration is recommended. This solution contains 126+ objects.
+
+**Notice:** solution is tested with Terraform v0.12.28 only. Newer versions (<0.13) should also work fine.
+
+**Notice:** solution is tested in eu-west-1 only. Nevertheless it should work in any region with Aurora Serverless Support. See regions aviability on the [pricing](https://aws.amazon.com/rds/aurora/pricing/?nc=sn&loc=4) page.
+
+### Deploy procedure
+
+**Notice:** full deployment procedure takes about 1h-2h. It depends on certain AWS services response SLA (E.g. 30m for certificate validation).
+
+Clone the layer. It's possible to pin to tags if required.
+
+```bash
+git clone https://github.com/btower-labz/terraform-btlabz-aws-asg-reference-layer.git
+cd terraform-btlabz-aws-asg-reference-layer
+```
+
+Do backend configuration. In case there is no backend config, everythong will be stored in local state. See sample: [backend.tf.sample](backend.tf.sample)
+
+Get parent public R53 zone identifier and put it in ```private.auto.tfvars```. See sample: [private.auto.tfvars.sample](private.auto.tfvars.sample)
 
 Configure AWS profile for the infrastructure (see [provider.tf](provider.tf))
+
+Check with ```aws sts get-caller-identity --profile terraform-infra```
+
+Initialize backend and update terraform modules. This step will fetch all the required modules from github and terraform registry.
+
+```bash
+terraform init -upgrade=true
+```
+
+Deploy Network using [network.sh](network.sh). This will deploy VPC, subnets, routing and NATs. Notice VPC and SUBNET identifiers.
+
+```bash
+./network.sh
+```
+
+Go up, clone and and bake AMIs in order: system->middleware->application. It's required so configure ```packer-vars.sh``` for the each image. See samples in ```packer-vars.sh.sample```. It's possible to retrieve values with ```terraform output```.
+
+Build system image as follows:
+
+```bash
+cd ..
+git clone https://github.com/btower-labz/packer-aws-ec2-reference-system.git
+cd packer-aws-ec2-reference-system
+cp packer-vars.sh.sample packer-vars.sh
+nano packer-vars.sh
+...
+./build-ami.sh
+```
+
+Build middleware image as follows:
+
+```
+cd ..
+git clone https://github.com/btower-labz/packer-aws-asg-reference-middleware.git
+cd packer-aws-asg-reference-middleware
+cp packer-vars.sh.sample packer-vars.sh
+nano packer-vars.sh
+...
+./build-ami.sh
+```
+
+Build application image as follows:
+
+```
+cd ..
+git clone https://github.com/btower-labz/packer-aws-asg-reference-application.git
+cd packer-aws-asg-reference-application
+cp packer-vars.sh.sample packer-vars.sh
+nano packer-vars.sh
+...
+./build-ami.sh
+```
+
+After all the images are ready, let's deploy database and migrations pipeline.
+
+```bash
+./database.sh
+./pipelines.sh
+```
+
 
 Deploy POC using [deploy.sh](deploy.sh)
 

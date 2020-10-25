@@ -2,7 +2,7 @@ terraform {
   backend "s3" {
     profile        = "terraform-state"
     bucket         = "some-s3-state-bucker"
-    key            = "some-path/aws-ec2-reference.tfstate"
+    key            = "some-path/aws-asg-reference.tfstate"
     region         = "regions"
     encrypt        = true
     kms_key_id     = "arn:aws:kms:*****"

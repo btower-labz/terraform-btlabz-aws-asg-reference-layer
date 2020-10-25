@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -o nounset
+set -o noclobber
+set -o errexit
+set -o pipefail
+
+aws sts get-caller-identity --profile terraform-state
+aws sts get-caller-identity --profile terraform-infra
+
+# Pipelines
+terraform apply -parallelism=50 -auto-approve -target module.codebuild
+terraform apply -parallelism=50 -auto-approve -target module.codedeploy
