@@ -225,7 +225,7 @@ Certificate provisioning ~5 minutes, but can be ~30-40 minutes.
 
 [balancer]: https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-ec2-balancer-module
 [codebuild]: https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-asg-codebuild-module
-[codedeploy]: https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-asf-codedeploy-module
+[codedeploy]: https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-asg-codedeploy-module
 [subzone]: https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-ec2-subzone-module
 [workload]: https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-asg-workload-module
 [database]: https://github.com/btower-labz/terraform-aws-btlabz-aurora-serverless-module
