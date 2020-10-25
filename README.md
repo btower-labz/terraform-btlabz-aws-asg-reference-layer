@@ -2,7 +2,11 @@
 
 This is a reference architecture for a sample python app with enabled HA and resiliency, autoscaling and database backend.
 
-This is the index page for the solution. Additional information might be available inside module repositories.
+This is the index page for the solution.
+Additional information might be available inside module repositories.
+
+This architecture is a fully functional MVP.
+And there is always enough space to improve. See TODO list in the end and marks across the code.
 
 ## Features
 
@@ -18,10 +22,11 @@ This reference architecture deploys options as follows:
 | HA and resilient RDS Backend with Query access | [usage](database.tf)<br>[module][database] | Aurora serverless is used as database backend. Data API with adhoc queries is enabled. |
 | Workload network and SG isolation (pub-pri-db) | | Workloads are isolated with networks and security groups. E.g. only load balancer is accessible from public. ASG instances use NAT for egress and accessible only through LB. Database backend is isolated in completely internal network. Security groups are used to enforce environment isolation fuarther. E.g. LB can access ASG instances only and can't access database. Database is accessible by ASG instances only. |
 | Session manager shell access and SM enabled | | |
-| Secrets manager and parameter store provisioning |  [provision](ssm-config.tf) | All the instances are enabled for SSM. Environment configuration is stored in SSM Parameter Store. Database secrets are in AWS Secrets Manager |
+| Secrets manager and parameter store provisioning |  [provision](ssm-config.tf) | All the instances are enabled for SSM. Environment configuration is stored in SSM Parameter Store. Database secrets are in AWS Secrets Manager. No actual secrets in VCS. |
 | DJANGO local and cloud profiles (SM, Secrets) | <br>[base](https://github.com/btower-labz/django-dashboard-black/blob/master/core/settings.py)<br>[local](https://github.com/btower-labz/django-dashboard-black/blob/master/core/settings_local.py)<br>[cloud](https://github.com/btower-labz/django-dashboard-black/blob/master/core/settings_cloud.py) | DJANGO is configured with two environment profiles: local and cloud. Local can be used on dev workstations. Cloud is for AWS deployment (dev, qa, prod etc) |
 | DJANGO decoupled database backend | | DJANGO is configured to use Aurora Serverless as backend and session storage. |
 | DJANGO migrations CodeBuild pipeline | [usage](pipelines.tf)<br>[module][codebuild] | Simple pipeline is created to handle database migrations. CodeBuild has an access to isolated RDS inside the VPC. |
+| AWS Resource Tagging |  | All the resources have tags with names, worklkoad identifiers and other metadata. |
 
 Additional information might be available inside the modules.
 
@@ -39,54 +44,53 @@ See here: [INPUTS\OUTPUTS](INOUT.md)
 
 ### Prerequisites
 
-Public R53 zone is required to deploy the solution. It will create a subzone with all the records required in that parent zone.
+**=>** Public R53 zone is required to deploy the solution. It will create a subzone with all the records required in that parent zone.
 
-Control workstation with: linux, git, terraform, packer, awscli
+**=>** Control workstation with: linux, git, terraform, packer, awscli
 
-AWS Profile with name "terraform-infra" with administrative access to the AWS account for infra provisioniung.
+**=>** AWS Profile with name "terraform-infra" with administrative access to the AWS account for infra provisioniung.
 
-AWS Profile with name "packer" with administrative access to the AWS account for AMI baking.
+**=>** AWS Profile with name "packer" with administrative access to the AWS account for AMI baking.
 
-Terraform backend configuration is recommended. This solution contains 126+ objects.
+**=>** Terraform backend configuration is recommended. This solution contains 126+ objects.
 
 **Notice:** solution is tested with Terraform v0.12.28 only. Newer versions (<0.13) should also work fine.
 
 **Notice:** solution is tested in eu-west-1 only. Nevertheless it should work in any region with Aurora Serverless Support. See regions aviability on the [pricing](https://aws.amazon.com/rds/aurora/pricing/?nc=sn&loc=4) page.
 
-### Deploy procedure
+### Deployment procedure
 
 **Notice:** full deployment procedure takes about 1h-2h. It depends on certain AWS services response SLA (E.g. 30m for certificate validation).
 
-Clone the layer. It's possible to pin to tags if required.
+**=>** Clone the layer. It's possible to pin to tags if required.
 
 ```bash
 git clone https://github.com/btower-labz/terraform-btlabz-aws-asg-reference-layer.git
 cd terraform-btlabz-aws-asg-reference-layer
 ```
 
-Do backend configuration. In case there is no backend config, everythong will be stored in local state. See sample: [backend.tf.sample](backend.tf.sample)
+**=>** Do backend configuration. In case there is no backend config, everythong will be stored in local state. See sample: [backend.tf.sample](backend.tf.sample)
 
-Get parent public R53 zone identifier and put it in ```private.auto.tfvars```. See sample: [private.auto.tfvars.sample](private.auto.tfvars.sample)
+**=>** Get parent public R53 zone identifier and put it in ```private.auto.tfvars```. See sample: [private.auto.tfvars.sample](private.auto.tfvars.sample)
 
-Configure AWS profile for the infrastructure (see [provider.tf](provider.tf))
-
+**=>** Configure AWS profile for the infrastructure (see [provider.tf](provider.tf))
 Check with ```aws sts get-caller-identity --profile terraform-infra```
 
-Initialize backend and update terraform modules. This step will fetch all the required modules from github and terraform registry.
+**=>** Initialize backend and update terraform modules. This step will fetch all the required modules from github and terraform registry.
 
 ```bash
 terraform init -upgrade=true
 ```
 
-Deploy Network using [network.sh](network.sh). This will deploy VPC, subnets, routing and NATs. Notice VPC and SUBNET identifiers.
+**=>** Deploy Network using [network.sh](network.sh). This will deploy VPC, subnets, routing and NATs. Notice VPC and SUBNET identifiers.
 
 ```bash
 ./network.sh
 ```
 
-Go up, clone and and bake AMIs in order: system->middleware->application. It's required so configure ```packer-vars.sh``` for the each image. See samples in ```packer-vars.sh.sample```. It's possible to retrieve values with ```terraform output```.
+**=>** Go up, clone and and bake AMIs in order: system->middleware->application. It's required so configure ```packer-vars.sh``` for the each image. See samples in ```packer-vars.sh.sample```. It's possible to retrieve values with ```terraform output```.
 
-Build system image as follows:
+**=>** Build system image as follows:
 
 ```bash
 cd ..
@@ -98,7 +102,7 @@ nano packer-vars.sh
 ./build-ami.sh
 ```
 
-Build middleware image as follows:
+**=>** Build middleware image as follows:
 
 ```
 cd ..
@@ -110,7 +114,7 @@ nano packer-vars.sh
 ./build-ami.sh
 ```
 
-Build application image as follows:
+**=>** Build application image as follows:
 
 ```
 cd ..
@@ -122,59 +126,57 @@ nano packer-vars.sh
 ./build-ami.sh
 ```
 
-After all the images are ready, let's deploy database and migrations pipeline.
+**=>** After all the images are ready, let's deploy the database and the migrations pipeline.
 
 ```bash
 ./database.sh
 ./pipelines.sh
 ```
 
+**=>** Go to CodeBuild console, edit the pipeline environment. Make sure "Allow AWS CodeBuild to modify this service role so it can be used with this build project" is selected and save changes. This will add all the dynamic policies which are required for CodeBuild to run. Save changes.
 
-Deploy POC using [deploy.sh](deploy.sh)
+**=>** Run the pipeline. Watch for phase details and the build log. This pipeline will create daatabase schema for the sample applications. Essentially it will run DJANGO migrations. Pipeline definition is here: [buildspec/migrations.yml](https://github.com/btower-labz/django-dashboard-black/blob/master/buildspec/migrations.yml).
 
-Update POC using [update.sh](update.sh)
+**=>** After all it's possible to get to RDS Home -> Query Editor and review data there. Use username and password from AWS Secrets Manager secret.
 
-Terraform v0.12.28
-+ provider.aws v3.5.0
-+ provider.random v3.0.0
-+ provider.template v2.2.0
+**=>** When it's done, deploy the rest of infrastructure.
 
-r53 public zone
-terraform profiles
-deploy network
-packer profiles
-configure and do packer
-deploy database and codebuild
-do migrations (do environment update once)
-deploy the rest
+```
+cd terraform-btlabz-aws-asg-reference-layer
+./deploy.sh
+```
 
+**=>** After deployment is finished it's possible to just update everything with
 
-deploy codebuild if required
+```
+./update.sh
+```
 
-~1h - 1.5h
+**=>** Destroy all the infrastructure as follows:
 
-codebuild manual action (allow update policy)
+```bash
+./destroy.sh
+```
 
-11:35
+### Operations
 
-~5m network.sh
+The site should be available at https://dashboard.asg.<your-public-domain>.
 
-config packer ...
+Status check is availabvle at this URL: https://dashboard.asg.<your-public-domain>/status/
 
-=> skip, provide branch ready image.
+It's possible to open SSH sessions with AWS sessions manager console. All the instances have enabled SSM agent. It's also possible to use SSM commands and documents on the workload.
 
-1. packer-system ~10 minutes
-2. packer-middleware ~ 10 minutes
-3. packer-application ~10 minutes
+It's possible to check instances healths in ASG console and Target Group console.
 
-config ami setting
+Rebuild the AMI and initiate ASG Instance Refresh to deploy a new software version.
 
-~10m deploy.sh
+ASG will automatically relaunch instances in case the app is failing health checks, or the instance is terminated manually.
 
-~20m 11:54 warm start
+### Deployment timings
 
-certificate validation\revalidation up to 30 minutes
+AMI baking time ~10-12 minutes. So, the whole sequence is ~30 minutes long.
 
+Certificate provisioning ~5 minutes, but can be ~30-40 minutes.
 
 ### Module references
 
@@ -205,18 +207,21 @@ certificate validation\revalidation up to 30 minutes
 ## TODO
 
 * [x] Migrations pipeline
-* [ ] Automatic AWS refresh on LT update
+* [ ] Automatic ASG refresh on LT update with SNS+Lambda
 * [ ] Static files on CDN
-* [ ] RDS Password Rotation
-* [ ] Persistent storage on EFS backend
-* [ ] Redis Sessions Backend
-* [ ] MemCached Cache backend
-* [ ] Secrets Rotation for RDS Aurora (+ASG refresh)
+* [ ] Get rid of manual CodeBuild update (policies issue)
+* [ ] RDS Password Rotation (B/G) with standard Lambda + Lambda pipeline + ASG Refresh
+* [ ] DJANGO Persistent storage on EFS backend
+* [ ] DJANGO Redis Sessions Backend
+* [ ] DJANGO MemCached Cache backend
 * [ ] Automatic scaling based on CPU
 * [ ] DJANGO decouple sessions => AWS Elastic Cache (REDIS)
 * [ ] DJANGO decouple cache  => AWS Elastic Cache (MEMCACHED)
 * [ ] DJANGO decouple file => AWS EFS
-
+* [ ] Refactor SSM parameters to a separate module
+* [ ] Packer pipelines
+* [ ] Send instance and application logs to CloudWatch Logs
+* [ ] Create CodeDeploy pipeline for ad-hoc updates (non-AMI) + ASG Refresh
 
 [balancer]: https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-ec2-balancer-module
 [codebuild]: https://github.com/btower-labz/terraform-aws-btlabz-arch-ref-asg-codebuild-module
