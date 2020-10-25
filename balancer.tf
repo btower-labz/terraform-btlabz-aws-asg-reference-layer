@@ -9,7 +9,8 @@ module "balancer" {
   zone_id = module.subzone.zone_id
   alias_list = [
     "foo",
-    "bar"
+    "bar",
+    "dashboard"
   ]
   tags = var.tags
 }

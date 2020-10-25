@@ -1,3 +1,8 @@
+variable "ami" {
+  description = "AMI to use with workloads"
+  type        = string
+}
+
 variable "tags" {
   description = "Additional tags. E.g. environment, backup tags etc"
   type        = map
