@@ -237,7 +237,7 @@ Certificate provisioning ~5 minutes, but can be ~30-40 minutes.
 [subzone-tr]: https://registry.terraform.io/modules/btower-labz/btlabz-arch-ref-ec2-subzone-module/aws
 [workload-tr]: https://registry.terraform.io/modules/btower-labz/btlabz-arch-ref-asg-workload-module/aws
 [database-tr]: https://registry.terraform.io/modules/btower-labz/btlabz-aurora-serverless-module/aws
-[vpc-ha-2x-tr]: https://registry.terraform.io/modules/btower-labz/terraform-aws-btlabz-pub2x-pri2x-dbs2x/aws
+[vpc-ha-2x-tr]: https://registry.terraform.io/modules/btower-labz/btlabz-pub2x-pri2x-dbs2x/aws
 
 [pkr-system]: https://github.com/btower-labz/packer-aws-ec2-reference-system
 [pkr-middleware]: https://github.com/btower-labz/packer-aws-asg-reference-middleware
