@@ -232,7 +232,7 @@ Certificate provisioning ~5 minutes, but can be ~30-40 minutes.
 [vpc-ha-2x]: https://github.com/btower-labz/terraform-aws-btlabz-pub2x-pri2x-dbs2x
 
 [balancer-tr]: https://registry.terraform.io/modules/btower-labz/btlabz-arch-ref-ec2-balancer-module/aws
-[codebuild-tr]: https://registry.terraform.io/modules/btower-labz/btlabz-arch-ref-ec2-codebuild-module/aws
+[codebuild-tr]: https://registry.terraform.io/modules/btower-labz/btlabz-arch-ref-asg-codebuild-module/aws
 [codedeploy-tr]: https://registry.terraform.io/modules/btower-labz/btlabz-arch-ref-ec2-codedeploy-module/aws
 [subzone-tr]: https://registry.terraform.io/modules/btower-labz/btlabz-arch-ref-ec2-subzone-module/aws
 [workload-tr]: https://registry.terraform.io/modules/btower-labz/btlabz-arch-ref-asg-workload-module/aws
