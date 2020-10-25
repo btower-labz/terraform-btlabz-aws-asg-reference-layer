@@ -36,16 +36,29 @@ Update POC using [update.sh](update.sh)
 
 # Features
 
-* Load Balancing
+* HA and Resilient VPC
+* Load Balancing with automatic SSL provisioning
 * ASG (Resiliency, Scaling)
-* AMI (System->MW->APP)
-* RDS Backend
+* AMI Layering (System->MW->APP)
+* HA and resilient RDS Backend with Query access
 * Workload network and SG isolation (pub-pri-db)
-* Session manager shell access
-* Secrets manager and parameter store
-
+* Session manager shell access and SM enabled
+* Secrets manager and parameter store provisioning
+* DJANGO local and cloud profiles (SM, Secrets)
+* DJANGO decoupled database backend
 
 # Deploy
+r53 public zone
+terraform profiles
+deploy network
+packer profiles
+configure and do packer
+deploy database and codebuild
+do migrations (do environment update once)
+deploy the rest
+deploy codebuild if required
+
+~1h - 1.5h
 
 codebuild manual action (allow update policy)
 
@@ -71,12 +84,15 @@ certificate validation\revalidation up to 30 minutes
 
 # TODO
 
-* Migrations
-* Automatic AWS refresh on LT update
-* Static files on CDN
-* RDS Password Rotation
-* Persistent storage on EFS backend
-* Redis Sessions Backend
-* MemCached Cache backend
-* Secrets Rotation for RDS Aurora (+ASG refresh)
-* Automatic scaling based on CPU
+* [v] Migrations pipeline
+* [ ] Automatic AWS refresh on LT update
+* [ ] Static files on CDN
+* [ ] RDS Password Rotation
+* [ ] Persistent storage on EFS backend
+* [ ] Redis Sessions Backend
+* [ ] MemCached Cache backend
+* [ ] Secrets Rotation for RDS Aurora (+ASG refresh)
+* [ ] Automatic scaling based on CPU
+* [ ] DJANGO decouple sessions => AWS Elastic Cache (REDIS)
+* [ ] DJANGO decouple cache  => AWS Elastic Cache (MEMCACHED)
+* [ ] DJANGO decouple file => AWS EFS
